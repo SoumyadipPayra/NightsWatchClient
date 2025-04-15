@@ -57,6 +57,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: Failed to create installation client: %v\n", err)
 			os.Exit(1)
 		}
+		defer installationClient.Close()
 
 		err = installationClient.Register(context.Background(), &nwPB.RegisterRequest{
 			Name:     username,
@@ -116,6 +117,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: Failed to create initialization client: %v\n", err)
 		os.Exit(1)
 	}
+	defer initClient.Close()
 
 	err = initClient.Login(context.Background(), &nwPB.LoginRequest{
 		Name:     username,
