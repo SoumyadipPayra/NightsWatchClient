@@ -39,14 +39,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: Failed to read installation status: %v\n", err)
 			os.Exit(1)
 		}
-		installed = string(content) == "true"
-	}
-
-	//read from another file username and password
-	username, password, err := readCredentials()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: Failed to read credentials: %v\n", err)
-		os.Exit(1)
+		installed = strings.Contains(string(content), "true")
 	}
 
 	if !installed {
@@ -85,6 +78,36 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: Failed to write installation status: %v\n", err)
 			os.Exit(1)
 		}
+
+		if _, err := os.Stat(".metadata/username"); os.IsNotExist(err) {
+			err = os.WriteFile(".metadata/username", []byte(username), 0644)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: Failed to write username: %v\n", err)
+				os.Exit(1)
+			}
+		}
+
+		if _, err := os.Stat(".metadata/password"); os.IsNotExist(err) {
+			// Encrypt the password before storing
+			encryptedPassword, err := enc_dec.Encrypt(password)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: Failed to encrypt password: %v\n", err)
+				os.Exit(1)
+			}
+
+			err = os.WriteFile(".metadata/password", []byte(encryptedPassword), 0644)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: Failed to write password: %v\n", err)
+				os.Exit(1)
+			}
+		}
+		return
+	}
+
+	err := readCredentials()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Failed to read credentials: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Run initialization mode
@@ -152,43 +175,25 @@ func main() {
 
 }
 
-func readCredentials() (string, string, error) {
-	if _, err := os.Stat(".metadata/username"); os.IsNotExist(err) {
-		err = os.WriteFile(".metadata/username", []byte(username), 0644)
-		if err != nil {
-			return "", "", fmt.Errorf("failed to write username: %v", err)
-		}
-	}
-
-	if _, err := os.Stat(".metadata/password"); os.IsNotExist(err) {
-		// Encrypt the password before storing
-		encryptedPassword, err := enc_dec.Encrypt(password)
-		if err != nil {
-			return "", "", fmt.Errorf("failed to encrypt password: %v", err)
-		}
-
-		err = os.WriteFile(".metadata/password", []byte(encryptedPassword), 0644)
-		if err != nil {
-			return "", "", fmt.Errorf("failed to write password: %v", err)
-		}
-	}
-
+func readCredentials() error {
 	// Read username and password from files
-	username, err := os.ReadFile(".metadata/username")
+	name, err := os.ReadFile(".metadata/username")
 	if err != nil {
-		return "", "", err
+		return fmt.Errorf("failed to read username: %v", err)
 	}
+	username = string(name)
 
 	encryptedPassword, err := os.ReadFile(".metadata/password")
 	if err != nil {
-		return "", "", err
+		return fmt.Errorf("failed to read password: %v", err)
 	}
 
 	// Decrypt the password
-	password, err := enc_dec.Decrypt(string(encryptedPassword))
+	pwd, err := enc_dec.Decrypt(string(encryptedPassword))
 	if err != nil {
-		return "", "", fmt.Errorf("failed to decrypt password: %v", err)
+		return fmt.Errorf("failed to decrypt password: %v", err)
 	}
+	password = pwd
 
-	return string(username), password, nil
+	return nil
 }

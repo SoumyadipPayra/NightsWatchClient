@@ -17,5 +17,6 @@ sudo rm -f /usr/local/bin/nightswatchclient
 
 # Remove all configuration and metadata files
 sudo rm -rf /usr/local/etc/nightswatch
+sudo rm -rf .metadata
 
 echo "NightsWatch client service, binary, and all configuration files have been removed."

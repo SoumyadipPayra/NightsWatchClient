@@ -6,7 +6,11 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-
+# Check if the user has sudo access
+if ! sudo -v; then
+    echo "Error: This script requires sudo access. Please run it with sudo."
+    exit 1
+fi
 
 # Build the binary
 echo "Building NightsWatch client..."
@@ -18,8 +22,6 @@ sudo mkdir -p /usr/local/bin
 sudo mkdir -p /usr/local/etc/nightswatch
 sudo mkdir -p /usr/local/etc/nightswatch/.metadata
 
-
-
 # Install the binaryx
 echo "Installing binary..."
 sudo cp nightswatchclient /usr/local/bin/
@@ -28,8 +30,6 @@ sudo chmod +x /usr/local/bin/nightswatchclient
 # Store credentials
 echo "Storing credentials..."
 sudo /usr/local/bin/nightswatchclient "$1" "$2"
-sudo chmod 600 /usr/local/etc/nightswatch/.metadata/username
-sudo chmod 600 /usr/local/etc/nightswatch/.metadata/password
 
 # Create a launchd plist file for nightswatchclient
 echo "Creating launchd service..."
