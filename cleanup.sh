@@ -15,10 +15,7 @@ rm -f /tmp/nightswatchclient.out /tmp/nightswatchclient.err
 # Remove the binary
 sudo rm -f /usr/local/bin/nightswatchclient
 
-# Remove the config files
-sudo rm -f /usr/local/etc/nightswatch/username /usr/local/etc/nightswatch/password
-
-# Remove the metadata directory
+# Remove all configuration and metadata files
 sudo rm -rf /usr/local/etc/nightswatch
 
-echo "NightsWatch client service and binary have been removed."
+echo "NightsWatch client service, binary, and all configuration files have been removed."

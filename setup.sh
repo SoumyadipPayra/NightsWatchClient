@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check for required arguments
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <username> <password>"
+    exit 1
+fi
+
+
+
 # Build the binary
 echo "Building NightsWatch client..."
 go build -o nightswatchclient
@@ -8,11 +16,20 @@ go build -o nightswatchclient
 echo "Creating necessary directories..."
 sudo mkdir -p /usr/local/bin
 sudo mkdir -p /usr/local/etc/nightswatch
+sudo mkdir -p /usr/local/etc/nightswatch/.metadata
 
-# Install the binary
+
+
+# Install the binaryx
 echo "Installing binary..."
 sudo cp nightswatchclient /usr/local/bin/
 sudo chmod +x /usr/local/bin/nightswatchclient
+
+# Store credentials
+echo "Storing credentials..."
+sudo /usr/local/bin/nightswatchclient "$1" "$2"
+sudo chmod 600 /usr/local/etc/nightswatch/.metadata/username
+sudo chmod 600 /usr/local/etc/nightswatch/.metadata/password
 
 # Create a launchd plist file for nightswatchclient
 echo "Creating launchd service..."
@@ -26,8 +43,8 @@ cat > ~/Library/LaunchAgents/com.nightswatch.client.plist << EOF
     <key>ProgramArguments</key>
     <array>
         <string>/usr/local/bin/nightswatchclient</string>
-        <string>--config</string>
-        <string>/usr/local/etc/nightswatch/config.yaml</string>
+        <string>$1</string>
+        <string>$2</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -50,12 +67,12 @@ EOF
 
 # Load the service
 echo "Loading service..."
-sudo launchctl load ~/Library/LaunchAgents/com.nightswatch.client.plist
+launchctl load ~/Library/LaunchAgents/com.nightswatch.client.plist
 
 # Start the service
 echo "Starting service..."
-sudo launchctl start com.nightswatch.client
+launchctl start com.nightswatch.client
 
 echo "NightsWatch client service has been installed and started."
 echo "Logs can be found in /tmp/nightswatchclient.out and /tmp/nightswatchclient.err"
-echo "Configuration files will be stored in /usr/local/etc/nightswatch/"
+echo "Configuration files are stored in /usr/local/etc/nightswatch/"

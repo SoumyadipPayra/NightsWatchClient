@@ -106,7 +106,7 @@ func main() {
 	fmt.Println("Login successful")
 	fmt.Println("--------------------------------")
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	err = osquery.Initialize()
